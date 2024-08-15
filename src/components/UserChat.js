@@ -61,6 +61,11 @@ const UserChat = () => {
     setInputMessage(e.target.value.split("").reverse().join(""));
   };
 
+  const preventPaste = (e) => {
+    e.preventDefault();
+    setError("Pasting is not allowed!");
+  };
+
   return (
     <div className="p-4 w-[90%] max-w-[44rem] mx-auto relative">
       <InfoComponent />
@@ -121,6 +126,7 @@ const UserChat = () => {
               type="text"
               value={inputMessage}
               onChange={handleInputChange}
+              onPaste={preventPaste}
               className="border rounded p-2 w-full text-white bg-gray-700 outline-none border-none"
               placeholder="Type your message in reverse"
             />
