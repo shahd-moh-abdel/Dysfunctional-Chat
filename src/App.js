@@ -1,5 +1,12 @@
+import React from "react";
+import UserChat from "./components/UserChat";
+
 function App() {
-  return <div className="text-xl text-teal-800">HELLO WORLD</div>;
+  return (
+    <div className="App">
+      <UserChat />
+    </div>
+  );
 }
 
 export default App;
