@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Alert, AlertDescription, AlertTitle } from "../@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { auth, db } from "../firebase";
-import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { db } from "../firebase";
 import {
   collection,
   addDoc,
@@ -10,20 +9,20 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
+import GlitchText from "react-glitch-text";
+import InfoComponent from "./InfoComponent";
 
 const UserChat = () => {
-  const [user, setUser] = useState(null);
+  const [username, setUsername] = useState("");
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (user) {
+    if (isLoggedIn) {
       const unsubscribe = onSnapshot(
-        query(
-          collection(db, "chats", user.uid, "messages"),
-          orderBy("timestamp")
-        ),
+        query(collection(db, "publicChat"), orderBy("timestamp")),
         (snapshot) => {
           setMessages(
             snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
@@ -32,23 +31,23 @@ const UserChat = () => {
       );
       return () => unsubscribe();
     }
-  }, [user]);
+  }, [isLoggedIn]);
 
-  const signIn = async () => {
-    try {
-      const result = await signInWithPopup(auth, new GoogleAuthProvider());
-      setUser(result.user);
-    } catch (error) {
-      setError("Failed to sign in. Please try again.");
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (username.trim()) {
+      setIsLoggedIn(true);
+    } else {
+      setError("Please enter a valid username.");
     }
   };
 
   const sendMessage = async () => {
     if (inputMessage.trim()) {
       try {
-        await addDoc(collection(db, "chats", user.uid, "messages"), {
+        await addDoc(collection(db, "publicChat"), {
           text: inputMessage,
-          sender: user.uid,
+          sender: username,
           timestamp: new Date(),
         });
         setInputMessage("");
@@ -62,57 +61,78 @@ const UserChat = () => {
     setInputMessage(e.target.value.split("").reverse().join(""));
   };
 
-  if (!user) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <button
-          onClick={signIn}
-          className="bg-blue-500 text-white rounded px-4 py-2"
-        >
-          Sign in with Google
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Chat with Me</h1>
-      <div className="bg-gray-100 p-4 rounded-lg mb-4 h-64 overflow-y-auto">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`mb-2 ${
-              message.sender === user.uid ? "text-right" : "text-left"
-            }`}
-          >
-            <span
-              className={`rounded px-2 py-1 inline-block ${
-                message.sender === user.uid
-                  ? "bg-blue-500 text-white"
-                  : "bg-green-500 text-white"
-              }`}
+    <div className="p-4 w-[90%] max-w-[44rem] mx-auto relative">
+      <InfoComponent />
+      {!isLoggedIn ? (
+        <div className="flex justify-center items-center h-screen">
+          <form onSubmit={handleLogin} className="flex flex-col items-center">
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter your name"
+              className="border rounded p-2 mb-2 text-white bg-gray-700 outline-none border-none outline-non"
+            />
+            <button
+              type="submit"
+              className="bg-blue-500 text-white rounded px-4 py-2 w-full"
             >
-              {message.text}
-            </span>
+              Enter Chat
+            </button>
+          </form>
+        </div>
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold mb-6 flex items-center justify-center">
+            <GlitchText
+              color1="red"
+              color2="rgb(59 130 246)"
+              className="text-gray-500"
+            >
+              <div className="text-gray-300">Glitchy Chat</div>
+            </GlitchText>
+          </h1>
+          <div className="bg-gray-700 p-4 rounded-lg mb-4 h-96 overflow-y-auto no-scroll">
+            {messages.map((message) => (
+              <div
+                key={message.id}
+                className={`mb-2 ${
+                  message.sender === username ? "text-right" : "text-left"
+                }`}
+              >
+                <span className="text-xs text-gray-400">
+                  {message.sender}:{" "}
+                </span>
+                <span
+                  className={`rounded px-2 py-1 inline-block ${
+                    message.sender === username
+                      ? "bg-cyan-800 text-white"
+                      : "bg-teal-700 text-white"
+                  }`}
+                >
+                  {message.text}
+                </span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      <div className="mb-4">
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={handleInputChange}
-          className="border rounded p-2 w-full"
-          placeholder="Type your message in reverse"
-        />
-      </div>
-      <button
-        onClick={sendMessage}
-        className="w-full bg-blue-500 text-white rounded px-4 py-2"
-      >
-        Send Message
-      </button>
+          <div className="mb-4">
+            <input
+              type="text"
+              value={inputMessage}
+              onChange={handleInputChange}
+              className="border rounded p-2 w-full text-white bg-gray-700 outline-none border-none"
+              placeholder="Type your message in reverse"
+            />
+          </div>
+          <button
+            onClick={sendMessage}
+            className="w-full bg-cyan-800 text-white rounded px-4 py-2"
+          >
+            Send Message
+          </button>
+        </>
+      )}
       {error && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />

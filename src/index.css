@@ -67,3 +67,15 @@
     @apply bg-background text-foreground;
   }
 }
+body {
+  background-color: rgb(17 24 39);
+}
+
+.no-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scroll {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

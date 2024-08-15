@@ -3,7 +3,7 @@ import UserChat from "./components/UserChat";
 
 function App() {
   return (
-    <div className="App">
+    <div className="h-[100vh] flex items-center justify-center">
       <UserChat />
     </div>
   );
