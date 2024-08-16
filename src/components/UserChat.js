@@ -33,17 +33,35 @@ const UserChat = () => {
     }
   }, [isLoggedIn]);
 
+  const validateInput = (input) => {
+    return (
+      input.trim().length > 0 &&
+      input.trim().length <= 20 &&
+      /^[a-zA-Z0-9]+$/.test(input)
+    );
+  };
+
+  const validateMessage = (input) => {
+    const trimmedInput = input.trim();
+    if (trimmedInput.length === 0 || trimmedInput.length > 200) {
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username.trim()) {
+    if (validateInput(username)) {
       setIsLoggedIn(true);
     } else {
-      setError("Please enter a valid username.");
+      setError(
+        "Please enter a valid username (alphanumeric, 1-20 characters)."
+      );
     }
   };
 
   const sendMessage = async () => {
-    if (inputMessage.trim()) {
+    if (validateMessage(inputMessage)) {
       try {
         await addDoc(collection(db, "publicChat"), {
           text: inputMessage,
@@ -54,6 +72,10 @@ const UserChat = () => {
       } catch (error) {
         setError("Failed to send message. Please try again.");
       }
+    } else {
+      setError(
+        "Invalid message. Please ensure your message is 1-200 characters."
+      );
     }
   };
 
@@ -128,7 +150,8 @@ const UserChat = () => {
               onChange={handleInputChange}
               onPaste={preventPaste}
               className="border rounded p-2 w-full text-white bg-gray-700 outline-none border-none"
-              placeholder="Type your message in reverse"
+              placeholder="Type your message in reverse (max 200 characters)"
+              maxLength={200}
             />
           </div>
           <button
