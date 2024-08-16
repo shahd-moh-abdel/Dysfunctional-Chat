@@ -37,7 +37,7 @@ const UserChat = () => {
     return (
       input.trim().length > 0 &&
       input.trim().length <= 20 &&
-      /^[a-zA-Z0-9]+$/.test(input)
+      /^[a-zA-Z0-9._-]+$/.test(input)
     );
   };
 
